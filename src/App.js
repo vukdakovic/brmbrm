@@ -5,13 +5,15 @@ import * as dates from './datesAndDays';
 import './App.css';
 
 function App() {
-  const [inputDate, setInputDate] = useState();
-  const [brmbrmCount, setBrmbrmCount] = useState(0);
   const [outputText, setOutputText] = useState();
 
   const daysBetweenCounter = (dateNew, dateOld) => {
     return Math.floor((dateNew.getTime() - dateOld.getTime()) / (1000*60*60*24));
   };
+
+  const numberFormator = (numberOfBrmbrms) => {
+    return new Intl.NumberFormat().format(numberOfBrmbrms)
+  }
 
   // To calculate the number of times Victor said brmbrm from month twelve:
   // between 7:00 to 11:00 he says brmbrm every 3 minutes, and between 14:00 to 20:00 he says BrmBrm every 4 minutes
@@ -34,26 +36,23 @@ function App() {
 
   const writeDateHandler = (event) => {
     let pickedDate = new Date(event);
-    let dayCount = daysBetweenCounter(pickedDate, dates.birth);
     let brmbrms = 0;
     if (pickedDate < dates.birth) {
       setOutputText("Viktor isn't there just yet!");
     } else if (pickedDate < dates.monthSix) {
       setOutputText("Viktor is too young to say brmbrm.");
-    } else if (pickedDate < dates.monthTwelve) {
-      brmbrms = brmbrmToTwelveCounter(daysBetweenCounter(pickedDate, dates.monthSix));
-      setOutputText("Viktor said " + new Intl.NumberFormat().format(brmbrms) + " BrmBrm's");
-    } else if (pickedDate < dates.monthEighteen) {
-      brmbrms = brmbrmToEighteenCounter(daysBetweenCounter(pickedDate, dates.monthTwelve));
-      setOutputText("Viktor said " + new Intl.NumberFormat().format(brmbrms) + " BrmBrm's");
     } else {
-      brmbrms = brmbrmAfterEighteenCounter(daysBetweenCounter(pickedDate, dates.monthEighteen));
-      setOutputText("Viktor said " + new Intl.NumberFormat().format(brmbrms) + " BrmBrm's");
+        if (pickedDate < dates.monthTwelve) {
+          brmbrms = brmbrmToTwelveCounter(daysBetweenCounter(pickedDate, dates.monthSix));
+        }
+        else if (pickedDate < dates.monthEighteen) {
+          brmbrms = brmbrmToEighteenCounter(daysBetweenCounter(pickedDate, dates.monthTwelve));
+        }
+        else {
+          brmbrms = brmbrmAfterEighteenCounter(daysBetweenCounter(pickedDate, dates.monthEighteen));
+        }
+        setOutputText("Viktor said " + numberFormator(brmbrms) + " BrmBrm's");
     }
-  }
-
-  const onChange = (event) => {
-    console.log(event);
   }
 
   const brmbrmToTwelveCounter = (days) => {
@@ -67,7 +66,7 @@ function App() {
   }
 
   const brmbrmToEighteenCounter = (days) => {
-    // Minus 1 because the 1st of december shouldn't be counted
+    // Minus 1 because the 1st of december shouldn't be counted in the method below
     let brmbrms = brmbrmToTwelveCounter(daysBetweenMonthSixAndTwelve - 1);
     for (let i = 0; i <= days; i++) {
       brmbrms += brmbrmPeak;
@@ -76,7 +75,8 @@ function App() {
   }
 
   const brmbrmAfterEighteenCounter = (days) => {
-    let brmbrms = brmbrmToEighteenCounter(daysBetweenMonthTwelveAndEighteen);
+    // Minus 1 because the 1st of june shouldn't be counted in the method below
+    let brmbrms = brmbrmToEighteenCounter(daysBetweenMonthTwelveAndEighteen - 1);
     for (let i = 0; i <= days; i++) {
       if (i >= 180) {
         brmbrms += brmbrmFinalPeak;
@@ -98,7 +98,7 @@ function App() {
       <p>This application will count how many times did Viktor say "brmbrm" up until, and including, the chosen date.</p>
       <p>Please enter the date:</p>
       <Calendar className="calendar" onChange={writeDateHandler}/>
-      <p>{outputText}</p>
+      <p className="output">{outputText}</p>
     </div>
   );
 }
